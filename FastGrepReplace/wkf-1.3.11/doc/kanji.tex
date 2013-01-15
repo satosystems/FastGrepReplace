@@ -1,0 +1,276 @@
+\documentstyle[a4j,epsf]{jarticle}
+
+\title{日本語コード(JIS, EUC, SJIS)の判別方法について}
+\author{阿部康一 (Kouichi ABE (WALL))}
+\date{西暦 1997 年 8 月 12 日 (火)}
+
+% set parameters for floating environments
+\def\textfraction{.08}
+\def\topfraction{.9}
+\def\floatpagefraction{.99}
+\def\dbltopfraction{.9}
+\def\dblfloatpagefraction{.99}
+
+\begin{document}
+\maketitle
+
+\section{はじめに}
+
+この文書は、日本語コードを判別する方法について記述したものである。以下、第
+\ref{sec:spec}章で日本語コードの仕様(主にプログラミング向け)について示し、第
+\ref{sec:guess} 章で日本語コードの判別方法について説明する。
+
+\section{日本語コード仕様}
+\label{sec:spec}
+
+\subsection{ASCII/JIS ローマ字の仕様}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  制御文字 & 0-31	& 00-1F	& 000-037 \\ \hline
+  空白文字 & 32		& 20	& 040     \\ \hline
+  図形文字 & 33-126	& 21-7E	& 041-176 \\ \hline
+  削除文字 & 127	& 7F	& 177	  \\ \hline
+\end{tabular}
+
+\subsection{JIS X 0201-1976 (俗称半角片仮名)のコード仕様}
+
+\subsubsection{半角片仮名のコード仕様}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  7bit 半角片仮名バイト範囲 & 33-95	& 21-5F	& 041-137 \\ \hline
+  8bit 半角片仮名バイト範囲 & 161-223	& A1-DF	& 241-337 \\ \hline
+\end{tabular}
+
+\subsubsection{EUC の半角片仮名のコード仕様}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  EUC 半角片仮名	& & & \\
+  (圧縮フォーマット)	& & & \\
+  第1バイト	& 142		& 8E	& 216 \\
+  第2バイト	& 161-223	& A1-DF	& 241-337 \\ \hline
+  EUC 半角片仮名	& & & \\
+  (2バイト固定フォーマット) & & & \\
+  第1バイト	& 0		& 00	& 000 \\
+  第2バイト	& 161-223	& A1-DF	& 241-337 \\ \hline
+\end{tabular}
+
+\subsection{JIS コードの仕様}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  2バイト文字	& & & \\
+  エスケープシーケンス	& & & \\
+  JIS C 6226-1978 & 27 36 64 & 1B 24 40 & 033 044 100 \\
+  JIS X 0208-1983 & 27 36 66 & 1B 24 42 & 033 044 102 \\
+  JIS X 0208-1990 & 27 38 64 27 36 66 & 1B 26 40 1B 24 42 &
+		    033 046 100 033 044 102 \\
+  JIS X 0212-1990 & 27 36 40 68 & 1B 24 28 44 & 033 044 050 104 \\ \hline
+  2バイト文字	& & & \\
+  第1バイト範囲	& 33-126	& 21-7E	& 041-176 \\
+  第2バイト範囲	& 33-126	& 21-7E	& 041-176 \\ \hline
+  1バイト文字	& & & \\
+  エスケープシーケンス	& & & \\
+  JIS ローマ字	& 27 40 74	& 1B 28 4A	& 033 050 112 \\
+  ASCII		& 27 40 66	& 1B 28 42	& 033 050 102 \\
+  半角片仮名	& 27 40 73	& 1B 28 49	& 033 050 111 \\ \hline
+  JIS7 半角片仮名 & & & \\
+  シフト・アウト	& 14	& 0E	& 016 \\
+  バイト範囲		& 33-95	& 21-5F	& 041-137 \\
+  シフト・イン		& 15	& 0F	& 017 \\ \hline
+  JIS8 半角片仮名 & & & \\
+  バイト範囲		& 161-223	& A1-DF	& 241-337 \\ \hline
+  ASCII/JIS ローマ字 & & & \\
+  バイト範囲		& 33-126	& 21-7E	& 041-176 \\ \hline
+\end{tabular}
+
+\subsubsection*{2バイト文字エスケープ・シーケンス文字表現}
+
+\begin{tabular}{ll}
+  {\bf ESC \$ @}		& JIS C 6226-1978 (旧 JIS) \\
+  {\bf ESC \$ B}		& JIS X 0208-1983 (新 JIS) \\
+  {\bf ESC \& @ ESC \$ B}	& JIS X 0208-1990 \\
+  {\bf ESC \$ ( D}		& JIX X 0212-1990
+\end{tabular}
+
+\subsubsection*{1バイト文字エスケープ・シーケンス文字表現}
+
+\begin{tabular}{lll}
+  {\bf ESC ( J}		& JIS X 0201-1976 roma		& (JIS ローマ字) \\
+  {\bf ESC ( B}		& ISO 646-1991			& (ASCII) \\
+  {\bf ESC ( I}		& JIX X 0201-1976 katakana	& (半角片仮名)
+\end{tabular}
+
+\subsection{シフト JIS のコード仕様}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  2バイト文字	& & & \\
+  第1バイト範囲	& 129-159, 224-239	& 81-9F, E0-EF	& 201-237, 340-357 \\
+  第2バイト範囲	&  64-126, 128-252	& 40-7E, 80-FC	& 100-176, 200-374 \\
+  \hline
+  JIS8 半角片仮名 & & & \\
+  バイト範囲		& 161-223	& A1-DF	& 241-337 \\ \hline
+  ASCII/JIS ローマ字 & & & \\
+  バイト範囲		& 33-126	& 21-7E	& 041-176 \\ \hline
+\end{tabular}
+
+\subsection{EUC のコード仕様}
+
+\subsubsection{EUC の保留コード範囲と位置}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  制御セット0	& 0-31		& 00-1F	& 000-037 \\
+  空白文字	& 32		& 20	& 040	  \\
+  削除文字	& 127		& 7F	& 177	  \\
+  制御セット1	& 128-159	& 80-9F	& 200-237 \\ \hline
+\end{tabular}
+
+\subsubsection{EUC 図形文字コード範囲}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  第1コード範囲	& 33-126	& 21-7E	& 041-176 \\
+  第1コード範囲	& 160-255	& A0-FF	& 240-377 \\ \hline
+\end{tabular}
+
+\subsubsection{EUC SS2 と SS3 の文字}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  SS2(Single Shift 2)	& 142	& 8E	& 216 \\
+  SS3(Single Shift 3)	& 143	& 8F	& 217 \\ \hline
+\end{tabular}
+
+\subsubsection{EUC 圧縮フォーマットのコード仕様}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  コードセット0	& & & \\
+  (ASCII/JIS ローマ字)	& & & \\
+  バイト範囲	& 33-126	& 21-7E	& 041-176 \\ \hline
+  コードセット1 & & & \\
+  (JIS X 0208-1990)	& & & \\
+  第1バイト範囲	& 161-254	& A1-FE	& 241-376 \\
+  第2バイト範囲	& 161-254	& A1-FE	& 241-376 \\ \hline
+  コードセット2 & & & \\
+  (半角片仮名)	& & & \\
+  第1バイト範囲(SS2)	& 142		& 8E	& 216	\\
+  第2バイト範囲		& 161-223	& A1-DF	& 241-337 \\ \hline
+  コードセット3 & & & \\
+  (JIS X 0212-1990)	& & & \\
+  第1バイト範囲(SS3)	& 143		& 8F	& 217	\\
+  第2バイト範囲		& 161-254	& A1-FE	& 241-376 \\
+  第3バイト範囲		& 161-254	& A1-FE	& 241-376 \\ \hline
+\end{tabular}
+
+\subsubsection{EUC 2バイト固定フォーマットのコード仕様}
+
+\begin{tabular}{|c|l|l|l|}
+  \hline
+  & \multicolumn{1}{|c}{10進} & \multicolumn{1}{|c}{16進} &
+  \multicolumn{1}{|c|}{8進} \\ \hline
+  コードセット0	& & & \\
+  (ASCII/JIS ローマ字)	& & & \\
+  第1バイト範囲	& 0		& 00	& 000	  \\ \hline
+  第2バイト範囲	& 33-126	& 21-7E	& 041-176 \\ \hline
+  コードセット1 & & & \\
+  (JIS X 0208-1990)	& & & \\
+  第1バイト範囲	& 161-254	& A1-FE	& 241-376 \\
+  第2バイト範囲	& 161-254	& A1-FE	& 241-376 \\ \hline
+  コードセット2 & & & \\
+  (半角片仮名)	& & & \\
+  第1バイト範囲	& 0		& 00	& 000	\\
+  第2バイト範囲	& 161-223	& A1-DF	& 241-337 \\ \hline
+  コードセット3 & & & \\
+  (JIS X 0212-1990)	& & & \\
+  第1バイト範囲	& 161-254	& A1-FE	& 241-376 \\
+  第2バイト範囲	&  33-126	& 21-7E	& 041-176 \\ \hline
+\end{tabular}
+
+
+\section{日本語コード判別方法}
+\label{sec:guess}
+
+\subsection{JIS コードの判別}
+
+\begin{minipage}{0.3\textwidth}
+JIS コードの判別には、右に示すような状態遷移表を用いて行う。右状態遷移表の
+{\bf S}が開始状態である。ここで、JIS コードであるならば、2バイトコード、ASCII
+コード、半角片仮名のいずれかで状態で終了するので、終了状態が {\bf 4, 6, 7}のい
+ずれかのときに JIS コードと判別される。また、状態 {\bf 4, 6, 7} では JIS コード
+としての出現頻度をカウントする。状態 {\bf S, 4, 6, 7, 9} では、JIS コードとして
+のポイントをカウントする。最終的な日本語コードの判別は、各コード毎の状態遷移の
+終了状態と出現頻度とポイントを総合して行う。
+\end{minipage}%
+\begin{minipage}{0.7\textwidth}%
+  \begin{center}
+    \epsfile{file=JIS.eps,scale=1.0}
+  \end{center}
+\end{minipage}
+
+\subsection{EUC コードの判別}
+
+\begin{minipage}{0.7\textwidth}
+EUC コードの判別には、右に示すような状態遷移表を用いて行う。{\bf S}が開始状態
+であり、同時に終了状態でもある。状態 {\bf 1, 2, 4} では、EUC コードとしての出現
+頻度をカウントする。状態 {\bf S, 1, 2, 4} では、EUC コードとしてのポイントをカ
+ウントする。最終的な日本語コードの判別は、各コード毎の状態遷移の終了状態と出現
+頻度とポイントを総合して行う。\vspace*{7zh}
+\end{minipage}%
+\begin{minipage}{0.3\textwidth}%
+  \begin{center}
+    \epsfile{file=EUC.eps,scale=1.0}
+  \end{center}
+\end{minipage}
+
+\subsection{シフト JIS コードの判別}
+
+\begin{minipage}{0.7\textwidth}
+シフト JIS コードの判別には、右に示すような状態遷移表を用いて行う。{\bf S}が開
+始状態であり、同時に終了状態でもある。状態 {\bf 1}では、シフト JIS コードとし
+ての出現頻度をカウントする。状態 {\bf S, 1} では、シフト JIS コードとしてのポイ
+ントをカウントする。最終的な日本語コードの判別は、各コード毎の状態遷移の終了状
+態と出現頻度とポイントを総合して行う。
+\end{minipage}%
+\begin{minipage}{0.3\textwidth}%
+  \begin{center}
+    \epsfile{file=SJIS.eps,scale=1.0}
+  \end{center}
+\end{minipage}
+
+\section{おわりに}
+\label{sec:conclusion}
+
+日本語コード判別方法として状態遷移と出現頻度とポイントを総合した方法を述べた。
+この方法を用いることにより、ほぼ完璧に日本語 EUC コードとシフト JIS コードとを
+判別することができる。
+
+\begin{thebibliography}{9}
+  \bibitem{Ken}
+  Ken Lunde, {\em ``Understanding Japanese Information Processing''},
+  O'Reilly \& Associates, Inc.
+\end{thebibliography}
+
+\end{document}

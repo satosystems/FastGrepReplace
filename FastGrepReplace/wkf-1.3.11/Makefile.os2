@@ -1,0 +1,149 @@
+##############################################################################
+#
+# FILE:		Makefile.os2
+# DESCRIPTION:	Makefile for wkf (OS2)
+# DATE:		Sun, Jan 16 2000
+# UPDATED:	Mon, Apr  4 2005
+# AUTHOR:	Kouichi ABE (WALL) / 阿部康一
+# E-MAIL:	kouichi@MysticWALL.COM
+# URL:		http://www.MysticWALL.COM/
+# COPYRIGHT:	(c) 2000-2005 阿部康一／Kouichi ABE (WALL), All rights reserved.
+# LICENSE:
+#
+#  Copyright (c) 2000-2005 Kouichi ABE (WALL) <kouichi@MysticWALL.COM>,
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#
+#   1. Redistributions of source code must retain the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#
+#   2. Redistributions in binary form must reproduce the above copyright
+#      notice, this list of conditions and the following disclaimer in the
+#      documentation and/or other materials provided with the distribution.
+#
+#   THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+#   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+#   THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+#   PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE
+#   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#   INTERRUPTION)  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+#   THE POSSIBILITY OF SUCH DAMAGE.
+#
+# $Id: Makefile.os2,v 1.3 2005/04/05 08:26:56 kouichi Exp $
+#
+##############################################################################
+
+prefix	    = /usr/local
+exec_prefix = ${prefix}
+bindir	    = ${exec_prefix}/bin
+libdir	    = ${exec_prefix}/lib
+includedir  = ${prefix}/include
+mandir	    = ${prefix}/man
+
+SHELL		= /bin/sh
+CC		= gcc
+DEFS		= -DHAVE_CONFIG_H
+LD		= /usr/bin/ld
+LN_S		= ln -s
+RM		= /bin/rm
+MV		= /bin/mv
+CP		= /bin/cp
+GNROFF		= /usr/local/bin/gnroff
+MKDIR		= /bin/mkdir
+CTAGS		= /usr/local/bin/ctags
+VI		= /usr/local/bin/vim
+INSTALL		= ./install-sh
+INSTALL_PROGRAM	= ${INSTALL} -s
+INSTALL_DATA	= ${INSTALL} -m 644
+
+
+CPPFLAGS	= -I.. -I. -I${prefix}/include
+CFLAGS		= $(DEFS) -g -O2 -Zcrtdll -s
+LDFLAGS		= 
+LIBS		= -L. -L${exec_prefix}/lib  -lwkf
+
+#DEF_CODE	= -DCODE_EUC_JP
+DEF_CODE	= -DCODE_SJIS
+
+
+###############################################################################
+#
+###############################################################################
+
+
+# 漢字コード判別用先読みバッファサイズの大きさです。
+# デフォルトは 2048 バイトです。変更したい場合は、コメントを外してね。
+#CHECK_SIZE=-DCHECK_SIZE=1024*16
+
+
+MAN=wkf.1
+
+SRC=wkf.c guess.c conv.c api.c
+OBJ=$(SRC:.c=.o)
+
+HDR=wkf.h kanji.h
+CODE_HDR=jiscodemap.h euccodemap.h sjiscodemap.h kanacodemap.h zenasciimap.h
+
+PROG=wkf.exe
+
+
+all:	$(PROG)
+
+###############################################################################
+#
+#	application
+#
+###############################################################################
+
+$(PROG):	$(OBJ)
+	$(CC) $(CFLAGS) -o $(PROG) $(OBJ)
+
+wkf.o:	wkf.c wkf.h kanji.h
+	$(CC) $(CFLAGS) -c wkf.c
+
+guess.o:	guess.c kanji.h
+	$(CC) $(CFLAGS) $(CHECK_SIZE) -c guess.c
+
+conv.o:	conv.c kanji.h $(CODE_HDR)
+	$(CC) $(CFLAGS) $(DEF_CODE) -c conv.c
+
+api.o:	api.c kanji.h
+	$(CC) $(CFLAGS) -c api.c
+
+
+###############################################################################
+###############################################################################
+
+
+test::	$(PROG)
+	@(cd test; ./check.sh)
+
+catman::	$(MAN)
+	$(GNROFF) -man -Tnippon $(MAN) > wkf.cat
+
+
+install::	check-dirs install.prog
+
+install.prog::	$(PROG)
+	-${MV} -f ${bindir}/${PROG} ${bindir}/${PROG}.old
+	${INSTALL} -s ${PROG} ${bindir}
+
+install.man::	$(MAN)
+	${INSTALL_DATA} ${MAN} ${mandir}
+
+check-dirs::
+	@if [ ! -d ${prefix}     ]; then ${MKDIR} ${prefix};     fi
+	@if [ ! -d ${bindir}     ]; then ${MKDIR} ${bindir};     fi
+
+clean::
+	-$(RM) -f *~ make.log *.bak a.out core *.core $(OBJ)
+
+purge::	clean
+	-$(RM) -f $(PROG)

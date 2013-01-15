@@ -1,0 +1,293 @@
+==============================================================================
+ WKF (WALL's Kanji Filter) Ver 1.3.11
+ Copyright (c) 1997-2007 阿部康一／Kouichi ABE (WALL) <kouichi@MysticWALL.COM>
+==============================================================================
+
+1. はじめに
+
+   WKF とは、日本語漢字コード変換フィルタです。
+   同様のプログラムが既に多く存在していますが、機能的には同程度のものです。
+   漢字コードのチェック・プログラムを作成していた時の副産物です。
+   バージョン 1.1.0 以降は漢字コード変換部分をライブラリ化しました。
+
+
+2. 機能
+
+   JIS、Shift-JIS、日本語 EUC コードの相互変換が可能なフィルタ・コマンドとして
+   動作します。俗に言う半角カナ文字も自動的に全角カナ文字に変換します。
+   Shift-JIS と日本語 EUC コードの判別には、状態遷移表とコード別出現頻度による
+   評価ポイントを用いて総合的に判断して漢字コードを判別しています。
+
+   ただし、Shift-JIS と日本語 EUC コードが重複するコード空間だけからなる文書の
+   場合には、漢字コードを正しく判別できません。このとき、デフォルトでは
+   make 時に指定したコードと判別するようになっています。
+
+   さらに、漢字コードをチェックするだけの機能も備えています。
+   シェル・スクリプトなどのプログラム中から利用する時に役立つと思います。
+   コード・チェックによって返される値を以下に示します。
+
+   +--------------------+--------------------------------------------------+
+   |      戻り値	|			説明			   |
+   +--------------------+--------------------------------------------------+
+   | ascii		| ISO 646-1991 ASCII				   |
+   | oldjis		| JIS C 6226-1978 (旧JIS)			   |
+   | newjis		| JIS X 0208-1983 (新JIS)			   |
+   | jis1990		| JIS X 0208-1990				   |
+   | euc-jp		| 日本語 EUC コード				   |
+   | sjis		| Shift-JIS コード				   |
+   | euc-jp/sjis	| 日本語 EUC or Shift-JIS コード		   |
+   | data		| おそらくバイナリコードかデータ		   |
+   | unknown		| 漢字コード判別不能 (ほぼ data に同じ)		   |
+   +--------------------+--------------------------------------------------+
+   | jisx0201(roma)	| JIS X 0201-1976 (ローマ字) だけ (含 ASCII コード)|
+   | jisx0201(kana)	| JIS X 0201-1976 (カナ)     だけ (含 ASCII コード)|
+   | jisx0212		| JIS X 0212-1990 (補助漢字) だけ (含 ASCII コード)|
+   +--------------------+--------------------------------------------------+
+   | oldjis+jisx0201	| JIS C 6226-1978 (旧JIS) + JIS X 0201-1976 (カナ) |
+   | oldjis+jisx0212	| JIS C 6226-1978 (旧JIS) + JIS X 0212-1990 (補助) |
+   | oldjis(broken)	| JIS C 6226-1978 (旧JIS)   (おそらく壊れている)   |
+   | newjis+jisx0201	| JIS X 0208-1983 (新JIS) + JIS X 0201-1976 (カナ) |
+   | newjis+jisx0212	| JIS X 0208-1983 (新JIS) + JIS X 0212-1990 (補助) |
+   | newjis(broken)	| JIS X 0208-1983 (新JIS)   (おそらく壊れている)   |
+   | jis1990+jisx0212	| JIS X 0208-1990	  + JIS X 0212-1990 (補助) |
+   | jis1990(broken)	| JIS X 0208-1990	    (おそらく壊れている)   |
+   | euc-jp+jisx0212	| 日本語 EUC コード	  + JIS X 0212-1990 (補助) |
+   | euc-jp(broken)	| 日本語 EUC コード	    (おそらく壊れている)   |
+   | sjis(broken)	| Shift-JIS コード	    (おそらく壊れている)   |
+   +--------------------+--------------------------------------------------+
+
+
+3. インストール
+
+   バージョン 1.1.0 から configure スクリプトを用いるようにしました。
+
+   ただし、WIN32 環境(Windows 95 / Windows NT)上で Visual C++(2.0 以降)を
+   使用してコンパイルするときには Makefile.vc を、OS2 上でのコンパイルには
+   Makefile.os2 を利用してください。
+   ※ Makefile.vc を利用する場合は、config.h.in を config.h にコピーする
+   ※ 必要があるようです。
+
+   これらは、バージョン 1.0.x のころに木村さんと奥西さんいただいた Makefile を
+   参考にしながら作者が修正したため、うまく make できないかもしれません。
+   適宜、修正してご利用ください。
+
+   （追記）
+   2003年3月4日に木村さんから Visual C++ 用のパッチをいただきました。
+   Makefile.vc を使うと Windows 環境でもちゃんとコンパイルできると思います。
+
+   （追記）
+   2005年5月16日に木村さんから Visual C++ 用の config.h.vc をいただきました。
+   Makefile.vc を利用する場合は、config.h.vc を config.h にコピーして
+   make を実行してください。
+
+
+   以下のようにキー入力してください。ほとんどは、これで問題ないと思います。
+
+	% ./configure
+	% make >& make.log
+	% make test >& test.log	(test.log の結果が全て OK ならインストール！)
+	% su
+	# make install
+
+
+   デフォルトでは、コマンドは /usr/local/bin に、ライブラリは
+   /usr/local/lib に、マニュアルは /usr/local/man/${LANG}/man1 に
+   インストールされます。
+
+   インストール先を変更したい場合は、次のようにしてください。
+
+	% ./configure --prefix=/home/kouichi
+
+   上記の場合は、/home/kouichi/bin にコマンドがインストールされます。
+   その他も同様です。
+
+   また、漢字コード判別用先読みバッファサイズを大きく、あるいは小さくしたい
+   場合は、Makefile 中の CHECK_SIZE の定義のコメントを外し、値を各自好きな
+   サイズに修正してください。
+   （注）大きいから判別性能が上がるわけでもないですが…たぶん。
+
+
+4. 使い方
+
+   以下、使用例および結果例を示します。
+
+   # hoge.txt を日本語 EUC コードに変換します。
+   % cat hoge.txt | wkf -e > hoge.euc
+
+   # hoge.txt を JIS コードに変換します。
+   % wkf -j hoge.txt > hoge.jis
+   
+   # hoge.txt を JIS コードに変換し、入力ファイルを hoge.txt.bak で保存します。
+   % wkf -Aj hoge.txt
+   
+   # hoge.txt を JIS コードに変換し、入力ファイルを hoge.txt.bak で保存します。
+   # このとき、出力ファイルのタイムスタンプを入力ファイルと同一にします。
+   % wkf -ATj hoge.txt
+   
+   # mail1 mail2 ファイルを日本語 EUC コードに変換します。
+   % wkf -e mail1 mail2 > mail.txt
+
+   # hoge.txt を日本語 EUC コード、また 2byte 英数字を 1byte 英数字に変換します
+   % wkf -ze hoge.txt > hoge.euc
+
+   # foo.txt を Shift-JIS コードに変換し、行末は CR(Macintosh 形式)とします。
+   % wkf -sM foo.txt > foo.mac
+
+   # foo.txt を Shift-JIS コードに変換し、行末は CR+LF(DOS 形式)とします。
+   % wkf -sD foo.txt > foo.dos
+
+   # JAPANESE ファイルの漢字コードチェックを行います。
+   % wkf -c JAPANESE
+   euc-jp
+
+   # JAPANESE README ファイルの漢字コードチェックを行います(ファイル名も表示)。
+   % wkf -C JAPANESE README
+   JAPANESE	euc-jp
+   README	euc-jp
+
+   # .bookmarks.html ファイルの漢字コード変換を行単位で行います。
+   # ver. 1.3.0 以降の新機能です。
+   % wkf -eL .bookmarks.html > .bookmarks-euc.html
+
+   # mail ファイル中の MIME エンコード文字列と漢字コード変換を行います。
+   # ver. 1.3.0 以降の新機能です。
+   % wkf -em mail 
+
+   # カレントディレクトリ以下の拡張子 .html のファイルをバックアップを
+   # 取りながら、日本語 EUC コードに変換します。
+   % find . -name '*.html' | xargs wkf -AeT
+
+
+5. 漢字変換ライブラリの使い方
+
+   添付の API ドキュメントを参照してください。
+
+
+6. バグ(仕様？)
+
+   Shift-JIS コードでの半角カナ(俗称)だけの文書の場合、日本語 EUC コードの
+   文書との判別が正しく行われないことがあります。そのため、漢字コード変換が
+   正しく行われません。その他にもまだ潜んでいるかもしれません。
+
+
+7. 著作権および配布条件
+
+  WKF の著作権は、[ 阿部 康一 <kouichi@MysticWALL.COM> ] が所有します。
+  Copyright (c) 1997-2007 Kouichi ABE (WALL), All rights reserved.
+
+
+  本ソフトウェアによって利用者または第三者が何らかの損害あるいは被害を受けた
+  場合，作者はその責任を一切負わないものとします。これを承諾する限りにおいて、
+  誰でも作者に断りなく全てのソースの配布、改変、引用、二次利用を自由に行えます。
+
+  但し、本ソフトウェアの利用・配布に制限を加えてしまうような行為、あるいは
+  作者に断り無く営利目的に利用するなどの行為は、一切これを厳重に禁止します。
+  雑誌等の付録として掲載する場合は、事前に掲載雑誌名などをお知らせください。
+
+  また、配布時には、必ず全ファイルおよびディレクトリを含めて下さい。
+  できれば作者に連絡を取ってくれると助かります。
+  ※ anonymous FTP server に置く場合は、連絡は不要です。
+
+
+8. その他
+
+  これを元に新たなものができた場合は作者にもソースを送ってくれると嬉しいです。
+  機能などの追加の時も、そのソースまたはパッチなどを送ってくれると助かります。
+
+  また意見、質問、要望なども下記メールアドレスまでお願いします。
+
+  インストールできない場合も、詳細な情報を送っていただければアドバイスは
+  可能だと思います。お気軽に下記メールアドレスまで！
+
+        kouichi@MysticWALL.COM
+
+  なお、最新版やパッチも以下の URL から入手可能です。
+
+	http://www.MysticWALL.COM/software/wkf/index.html
+
+
+9. 動作確認環境
+
+  [ wkf-1.3.x ]
+  FreeBSD 6.2-RELEASE
+  FreeBSD 5.4-RELEASE
+  FreeBSD 5.3-RELEASE
+  FreeBSD 5.2.1-RELEASE
+  FreeBSD 5.0-RELEASE-p4
+  FreeBSD 4.11-RELEASE
+  FreeBSD 4.9-RELEASE
+  FreeBSD 4.7-STABLE
+  FreeBSD 4.6-STABLE
+  FreeBSD 4.3-STABLE
+
+  [ wkf-1.2.x ]
+  FreeBSD 4.3-RC
+  FreeBSD 4.2-RELEASE/4.2-STABLE
+  FreeBSD 3.5-RELEASE
+  Vine Linux 2.0 (Linux 2.2.16 egcs 2.91.66) (by 石濱さん)
+  Turbo Linux WorkStation 6.0 (kernel 2.2.13)
+	gcc version 2.95.2 19991024 (release) (by 吉田さん)
+  MacOS 7.5.5
+	CodeWarriorPro10, PPC Compiler, ANSI C Project 使用 (by 庄司さん)
+	※ただし、ライブラリのみ動作確認。
+
+
+  [ wkf-1.1.x ]
+  FreeBSD 2.2.8 (gcc 2.7.2.1)
+  Red Hat Linux 6.1(Linux 2.2.12 egcs 2.91.66)	(by 山縣さん)
+  Red Hat Linux 6.0(Linux 2.2.5  egcs 2.91.66)	(by 山縣さん)
+  Vine Linux 2.0 (Linux 2.2.14 egcs 2.91.66)	(by 石濱さん)
+
+
+  以下は、wkf-1.0.9d のときの動作環境です。
+
+  FreeBSD 2.1.7.1	gcc 2.6.3
+  FreeBSD 2.2.1		gcc 2.7.2.1
+  HP-UX B.10.20		gcc 2.7.2.3
+  SunOS 5.5.1		gcc 2.7.2.1
+  Linux 2.0.31		gcc 2.7.2.1	山縣(Atsushi Yamagata)さん
+  IRIX 6.3		cc (c_dev 7.1)	藤井＠通総研さん
+  SunOS 4.1.x		gcc 2.7.2.f.1	みちる＠名大物理さん
+  Digital UNIX4.0A	cc (OS附属)	牛田(Jun Ushida)さん
+  Digital UNIX3.2A	cc (OS附属)	牛田(Jun Ushida)さん
+  OS/2 Warp 4.0		emx0.9c/fix03 + gcc 2.7.2
+					奥西(OKUNISHI Fujikazu)さん
+  WIN32 環境		Visual C++ 4.0	木村(KIMURA Koichi)さん
+
+
+10. 謝辞
+
+  最後に、WKF について意見、バグ報告などをくださった以下の方々に、
+  この場を借りて感謝の意を表せていただきます。
+  なお、メール・アドレスは From 行等から抜粋しています。
+
+  [ wkf-1.3.x ]
+  openeyes@estyle.ne.jp (いわなが さん)
+  mayah <mayah@mayah.jp> (川中 真耶さん)
+  KIMURA Koichi <kimura.koichi@canon.co.jp> (木村＠キヤノン)
+  Tamotsu Hasegawa <tamotsu@nippaku.co.jp>(長谷川＠ニッパクさん)
+  山口 高史 <yamagu@dwahan.net> さん
+  "H.Toraiwa" <tora@po.iijnet.or.jp> さん
+
+  [ wkf-1.2.x ]
+  Takeshi Ishihama <ishihama@infor.kanazawa-it.ac.jp>(石濱 雄志さん)
+  Atsushi Yamagata <yamagata@ns0.plathome.co.jp>(山縣 敦さん)
+  Yoshida Yusuke <yosida@dbms.cs.gunma-u.ac.jp>(吉田 裕介さん)
+  Takayuki <ta@jan.ne.jp>(庄司 貴幸さん)
+  taketa@etn.yz.yamagata-u.ac.jp (TAKETA Toshihiro) さん
+
+  [ wkf-1.1.x ]
+  Atsushi Yamagata <yamagata@ns0.plathome.co.jp>(山縣 敦さん)
+  Takeshi Ishihama <ishihama@infor.kanazawa-it.ac.jp>(石濱 雄志さん)
+  saguchi <y_saguchi@nisin.co.jp>(佐口 良隆さん)
+  ISHIJIMA Hiroyasu <ishiji@mb.infoweb.ne.jp>(石島 裕康さん)
+
+  [ wkf-1.0.x ]
+  Atsushi Yamagata <yamagata@jwu.ac.jp>(山縣さん)
+  Tetsuya Fujii <tfujii@crl.go.jp>(藤井＠通総研さん)
+  Ooyam Michiru <michiru@eds.ecip.nagoya-u.ac.jp>(みちる＠名大物理さん)
+  Jun Ushida <ushida@kronos.mp.es.osaka-u.ac.jp>(牛田さん)
+  NARITA Tomio <nrt@web.ad.jp>(成田＠富士通さん) 
+  OKUNISHI Fujikazu <fuji0924@mbox.kyoto-inet.or.jp>(奥西さん)
+  KIMURA Koichi <kkimura@pure.cpdc.canon.co.jp> (木村さん)
+

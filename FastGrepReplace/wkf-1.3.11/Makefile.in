@@ -1,0 +1,226 @@
+##############################################################################
+#
+# FILE:		Makefile.in
+# DESCRIPTION:	Makefile for wkf
+# DATE:		Sun, Jan 16 2000
+# UPDATED:	Sun, Mar  5 2006
+# AUTHOR:	Kouichi ABE (WALL) / 阿部康一
+# E-MAIL:	kouichi@MysticWALL.COM
+# URL:		http://www.MysticWALL.COM/
+# COPYRIGHT:	(c) 2000-2006 阿部康一／Kouichi ABE (WALL), All rights reserved.
+# LICENSE:
+#
+#  Copyright (c) 2000-2006 Kouichi ABE (WALL) <kouichi@MysticWALL.COM>,
+#  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions
+#  are met:
+#
+#   1. Redistributions of source code must retain the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#
+#   2. Redistributions in binary form must reproduce the above copyright
+#      notice, this list of conditions and the following disclaimer in the
+#      documentation and/or other materials provided with the distribution.
+#
+#   THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+#   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+#   THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+#   PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE
+#   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#   INTERRUPTION)  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+#   THE POSSIBILITY OF SUCH DAMAGE.
+#
+# $Id: Makefile.in,v 1.11 2006/03/05 11:39:59 kouichi Exp $
+#
+##############################################################################
+
+prefix	    = @prefix@
+exec_prefix = @exec_prefix@
+bindir	    = @bindir@
+libdir	    = @libdir@
+includedir  = @includedir@
+mandir	    = @mandir@/ja
+
+VPATH	 = @srcdir@
+SRCDIR	 = @srcdir@
+TOPSRC	 = @top_srcdir@
+BUILDDIR = @abs_builddir@
+
+CC		= @CC@
+DEFS		= @DEFS@
+LD		= @LDSHARED@
+LN_S		= @LN_S@
+RANLIB		= @RANLIB@
+RM		= @RM@
+MV		= @MV@
+CP		= @CP@
+GROFF		= @GROFF@
+MKDIR		= @MKDIR@ -p
+CTAGS		= @CTAGS@
+VI		= @VI@
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@ -s
+INSTALL_DATA	= @INSTALL_DATA@
+
+
+CPPFLAGS	= -I. -I.. -I@srcdir@ -I@includedir@
+CFLAGS		= $(DEFS) @CFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= -L. -L@srcdir@ -L@libdir@ @LIBS@ -lwkf
+MISSING_OBJ	= @MISSING_OBJ@
+LTMISSING_OBJ	= @LTMISSING_OBJ@
+
+DEF_CODE	= @DEF_CODE@
+
+
+###############################################################################
+
+# 漢字コード判別用先読みバッファサイズの大きさです。
+# デフォルトは 2048 バイトです。変更したい場合は、コメントを外してね。
+#CHECK_SIZE=-DCHECK_SIZE=1024*16
+
+
+MAN=wkf.1
+
+SRC=wkf.c
+OBJ=$(SRC:.c=.o)
+
+PSRC=guess.c conv.c api.c api2.c
+POBJ=$(PSRC:.c=.o) ${MISSING_OBJ}
+
+SSRC=guess.c conv.c api.c api2.c
+SOBJ=$(SSRC:.c=.lo) ${LTMISSING_OBJ}
+
+HDR=wkf.h
+
+LHDR=kanji.h
+CODE_HDR=jiscodemap.h euccodemap.h sjiscodemap.h kanacodemap.h zenasciimap.h
+
+PROG=wkf
+PLIB=libwkf.a
+SLIB=libwkf13.so.1
+
+
+all: $(PLIB) $(SLIB) $(PROG)
+
+###############################################################################
+
+.SUFFIXES: .o .c .lo
+
+.c.o:
+	${CC} -fpic ${CFLAGS} ${CPPFLAGS} -c $< -o $@
+
+.c.lo:
+	${CC} -fPIC ${CFLAGS} ${CPPFLAGS} -c $< -o $@
+
+
+###############################################################################
+#
+#	application
+#
+###############################################################################
+
+$(PROG): $(OBJ) $(PLIB)
+	$(CC) $(CFLAGS) -o $(PROG) $(OBJ) $(LIBS)
+
+wkf.o:	wkf.c $(HDR) $(LHDR)
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+
+
+###############################################################################
+#
+#	library
+#
+###############################################################################
+
+guess.o: guess.c $(LHDR)
+	$(CC) -fpic $(CFLAGS) $(CPPFLAGS) $(CHECK_SIZE) -c $<
+
+conv.o:	conv.c $(LHDR) $(CODE_HDR)
+	$(CC) -fpic $(CFLAGS) $(CPPFLAGS) -c $<
+
+api.o: api.c $(LHDR)
+	$(CC) -fpic $(CFLAGS) $(CPPFLAGS) $(DEF_CODE) -c $<
+
+api2.o: api2.c $(LHDR)
+	$(CC) -fpic $(CFLAGS) $(CPPFLAGS) -c $<
+
+
+$(PLIB): $(POBJ)
+	-$(RM) -f $(PLIB)
+	$(AR) rc $(PLIB) $(POBJ)
+	$(RANLIB) $(PLIB)
+
+guess.lo: guess.c $(LHDR)
+	$(CC) -fPIC $(CFLAGS) $(CPPFLAGS) $(CHECK_SIZE) -c $< -o $@
+
+conv.lo: conv.c $(LHDR) $(CODE_HDR)
+	$(CC) -fPIC $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+api.lo:	api.c $(LHDR)
+	$(CC) -fPIC $(CFLAGS) $(CPPFLAGS) $(DEF_CODE) -c $< -o $@
+
+api2.lo: api2.c $(LHDR)
+	$(CC) -fPIC $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+
+
+$(SLIB): $(SOBJ)
+	-$(RM) -f $(SLIB)
+	$(CC) -shared -Wl,-soname,$(SLIB) -o $(SLIB) $(SOBJ)
+
+###############################################################################
+
+strlcpy.o: strlcpy.c
+strlcpy.lo: strlcpy.c
+
+###############################################################################
+
+tags::	$(SRC) $(PSRC) $(HDR) $(LHDR)
+	$(CTAGS) $(SRC) $(PSRC) $(HDR) $(LHDR)
+
+
+test::	$(PROG)
+	@(cd $(SRCDIR)/test; ./check.sh ${BUILDDIR}/$(PROG))
+
+catman:: $(MAN)
+	$(GROFF) -man -Tnippon $(MAN) > wkf.cat
+
+
+install:: check-dirs install-prog install-lib install-man
+
+install-prog::	$(PROG)
+	-${MV} -f ${bindir}/${PROG} ${bindir}/${PROG}.old
+	${INSTALL_PROGRAM} ${PROG} ${bindir}
+
+install-lib::	$(PLIB) $(SLIB) wkf.h
+	-${RM} ${libdir}/${PLIB}
+	${INSTALL_DATA} ${PLIB} ${libdir}
+	${RANLIB} -t ${libdir}/${PLIB}
+	-${RM} ${libdir}/${SLIB}
+	-${RM} ${libdir}/libwkf.so
+	${INSTALL_DATA} ${SLIB} ${libdir}
+	(cd ${libdir}; ${LN_S} ${SLIB} libwkf.so)
+	${INSTALL_DATA} ${SRCDIR}/wkf.h ${includedir}
+
+install-man::	$(MAN)
+	${INSTALL_DATA} ${SRCDIR}/${MAN} ${mandir}/man1
+
+check-dirs::
+	@if [ ! -d ${prefix}      ]; then ${MKDIR} ${prefix};      fi
+	@if [ ! -d ${bindir}      ]; then ${MKDIR} ${bindir};      fi
+	@if [ ! -d ${libdir}      ]; then ${MKDIR} ${libdir};      fi
+	@if [ ! -d ${mandir}      ]; then ${MKDIR} ${mandir};      fi
+	@if [ ! -d ${mandir}/man1 ]; then ${MKDIR} ${mandir}/man1; fi
+	@if [ ! -d ${includedir}  ]; then ${MKDIR} ${includedir};  fi
+
+clean::
+	-$(RM) -f *~ make.log *.bak a.out core *.core $(OBJ) $(POBJ) $(SOBJ) gmon.out
+
+purge::	clean
+	-$(RM) -f $(PROG) $(PLIB) $(SLIB)

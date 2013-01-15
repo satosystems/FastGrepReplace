@@ -1,0 +1,31 @@
+// FastGrepReplace.mac 2.50
+// Copyright (C) 2003-20010 Satoshi Ogata
+// satosystems@gmail.com
+
+loaddll "TKInfo.dll";
+if (result) {
+	message "FastGrepReplace\nGŠÛƒ[ƒ‹ã‚Å‚ÍÀs‚Å‚«‚Ü‚¹‚ñB";
+	endmacro;
+}
+
+$rc = filter(macrodir + "\\FastGrepReplace.hmf", "Setup", "", directory2);
+if ($rc == "SUCCESS") {
+	disableinvert;
+	setcompatiblemode 0x0F;
+	selectall;
+	filter macrodir + "\\FastGrepReplace.hmf", "Replace", "";
+	escape;
+	enableinvert;
+	
+	if (existfile(macrodir + "\\FastGrepReplace.log")) {
+		gofileend;
+		#lineno = lineno;
+		begingroupundo;
+		insert "\n\n";
+		insertfile macrodir + "\\FastGrepReplace.log";
+		movetolineno 1, #lineno + 2;
+		endgroupundo;
+	}
+} else {
+	message $rc;
+}

@@ -1,0 +1,141 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG1 DIALOGEX 0, 0, 186, 106
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+CAPTION "FastGrepReplace"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "キャンセル",IDCANCEL,68,86,50,14
+    LTEXT           "処理中:",IDC_STATIC,6,6,28,8
+    LTEXT           "処理済行数:",IDC_STATIC,6,18,44,8
+    LTEXT           "処理済ファイル数:",IDC_STATIC,6,30,58,8
+    LTEXT           "スキップ行数:",IDC_STATIC,6,42,74,8
+    LTEXT           "スキップファイル数:",IDC_STATIC,6,54,74,8
+    RTEXT           "",IDC_STATIC_CURRENT_FILE_NAME,36,6,141,8
+    RTEXT           "0",IDC_STATIC_DONE_LINE_COUNT,66,18,111,8
+    RTEXT           "0",IDC_STATIC_DONE_FILE_COUNT,66,30,111,8
+    RTEXT           "0",IDC_STATIC_SKIP_LINE_COUNT,66,42,111,8
+    RTEXT           "0",IDC_STATIC_SKIP_FILE_COUNT,66,54,111,8
+    CONTROL         "",IDC_PROGRESS,"msctls_progress32",WS_BORDER,6,68,174,12
+END
+
+IDD_DIALOG2 DIALOGEX 0, 0, 312, 214
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "FastGrepReplace"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "スタティック",IDC_STATIC1,6,6,300,8
+    EDITTEXT        IDC_EDIT1,6,14,300,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "置換前:",IDC_STATIC,6,34,28,8
+    EDITTEXT        IDC_EDIT2,6,42,300,56,ES_MULTILINE | ES_READONLY | WS_VSCROLL
+    LTEXT           "置換後の内容（この内容で置換します）:",IDC_STATIC,6,104,300,8
+    EDITTEXT        IDC_EDIT3,6,112,300,56,ES_MULTILINE | WS_VSCROLL
+    CONTROL         "以降問い合わせない",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,174,300,10
+    PUSHBUTTON      "置換して継続",IDOK,26,194,80,14
+    PUSHBUTTON      "置換せずに継続",IDC_NO_REPLACE,116,194,80,14
+    PUSHBUTTON      "すべてキャンセル",IDC_ABORT,206,194,80,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 180
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 100
+    END
+
+    IDD_DIALOG2, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 306
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 208
+        HORZGUIDE, 14
+        HORZGUIDE, 34
+        HORZGUIDE, 42
+        HORZGUIDE, 98
+        HORZGUIDE, 106
+        HORZGUIDE, 112
+        HORZGUIDE, 168
+        HORZGUIDE, 174
+        HORZGUIDE, 184
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

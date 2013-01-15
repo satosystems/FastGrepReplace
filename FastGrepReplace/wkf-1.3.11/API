@@ -1,0 +1,398 @@
+==============================================================================
+ WKF (WALL's Kanji Filter) Ver 1.3.x
+ Copyright (c) 1997-2005 阿部康一／Kouichi ABE (WALL) <kouichi@MysticWALL.COM>
+==============================================================================
+
+『漢字コード変換ライブラリの使い方』
+
+ 1. はじめに
+
+    本文書では、漢字コード変換ライブラリの使用方法について説明します。
+    インストールの方法などについては、README ファイルを御覧ください。
+
+    漢字コード変換用 API（Application Programing Interface）は、
+    wkf で始まる関数名として wkf.h に定義されています。
+
+    デフォルトでのインストールでは、必要なヘッダファイルとライブラリは、
+
+	/usr/local/include/wkf.h
+	/usr/local/lib/libwkf.a
+	/usr/local/lib/libwkf.so.1.3
+
+    にインストールされます。
+
+
+ 2. API 一覧
+
+    (1) 漢字コード表示
+
+	void	wkfPrintGuessedKanjiCodeOfFile(FILE * fin, bool_t detail);
+
+	入力ファイルのファイルポインタ fin と表示形式 detail を
+	引数に取ります。fin の指すファイルの漢字コードが日本語 EUC で
+	かつ表示形式の引数 detail が TRUE の場合、標準出力への表示は
+	"Japanese EUC" となり、detail が FALSE の場合は、表示は
+	"euc-jp" となります。
+
+
+    (2) 漢字コードの自動判別
+
+	kcode_t	wkfGuessKanjiCodeOfFile(FILE * fin);
+	kcode_t	wkfGuessKanjiCodeOfString(char * str);
+
+	入力ファイルのファイルポインタ fin あるいは、入力文字列 str の
+	漢字コードを自動判別して kcode_t 型で定義された値を返します。
+	返される値は、次のとおりです。
+
+	KC_UNKNOWN	判別不能
+	KC_EUCorSJIS	日本語ＥＵＣかシフトＪＩＳ
+	KC_ASCII	ＡＳＣＩＩ
+	KC_JIS		ＪＩＳ
+	KC_EUC		日本語ＥＵＣ
+	KC_SJIS		シフトＪＩＳ
+	KC_BROKEN	ファイルが壊れている
+	KC_DATA		バイナリファイル
+
+
+    (3) 漢字コードを変換してファイルを読み込み専用で開く
+
+	FILE *	wkfFileOpen(char * fname, kcode_t kout);
+	int	wkfFileClose(FILE * fp);
+
+	wkfFileOpen() では、ファイル名 fname と変換漢字コード kout を
+	指定して呼び出します。kout で指定可能な値は、上記 kcode_t の
+	説明のとおりです。戻り値としては、ファイルポインタが返されます。
+	失敗した場合は NULL が返されます。
+
+	wkfFileClose() は、wkfFileOpen() で開いたファイルを閉じます。
+	wkfFileClose() の引数 fp は、wkfFileOpen() で取得したファイル
+	ポインタとなります。
+
+
+    (4) 漢字コードを変換してファイルに出力
+
+	conv_t	wkfConvertKanjiCodeOfFile(kcode_t kin,  FILE * fin,
+					  kcode_t kout, FILE * fout);
+
+	wkfConvertKanjiCodeOfFile() は、入力漢字コード kin と入力ファイルの
+	ファイルポインタ fin、出力漢字コード kout と出力ファイルのファイル
+	ポインタ fout を引数に取ります。
+
+	入力ファイルの漢字コードを自動判別させるには、kin として
+	KC_UNKNOWN を指定してください。不明な場合も同様です。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	変換に失敗
+	CONV_NO		変換しない
+	CONV_OK		変換成功
+
+
+    (5) 漢字コードを変換して文字列用のバッファに返す
+
+	conv_t	wkfConvertKanjiCodeOfString(kcode_t kin,  char * sin,
+					    kcode_t kout, char * sout,
+					    unsigned int size);
+
+	wkfConvertKanjiCodeOfString() は、入力漢字コード kin と
+	入力文字列バッファ sin、出力漢字コード kout と出力文字列
+	バッファ sout、出力文字列バッファサイズ size を引数に取ります。
+
+	入力文字列の漢字コードを自動判別させるには、kin として
+	KC_UNKNOWN を指定してください。不明な場合も同様です。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	変換に失敗
+	CONV_NO		変換しない
+	CONV_OK		変換成功
+
+	※CONV_ERR が返る場合は、変換後の文字列を格納するためのバッファの
+	  大きさ size が小さ過ぎることが考えられます。
+
+
+    (6) 改行コードの設定
+
+	void	wkfSetLineEndCode(lineend_t lineend);
+
+	出力時の改行コードを設定します。引数 lineend の値は
+	次のいずれかを指定してください。
+
+	LE_LF	0x0a		UNIX 系
+	LE_CR	0x0d		Macintosh 系
+	LE_CRLF	0x0d0x0a	MS-DOS/Windows 系
+
+
+    (7) 2byte 英数字を 1byte 英数字に変換
+
+	void	wkfConvertZenkaku2ASCII(bool_t zen2ascii);
+
+	出力時に'Ａ０'などを'A0'に変換します。
+	引数 zen2ascii が TRUE の場合は、上記のような変換を行います。
+	引数 zen2ascii が FALSE の場合は変換は行われません。
+
+
+    以下は、1.3 以降に実装された関数です。
+
+    (8) 文字列を Base64 でエンコードした文字列に変換
+
+	int	wkfEncodeBase64String(const String str, String rbuf,
+				      size_t rsize);
+
+	文字列を Base64 でエンコードされた文字列に変換します。
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+
+	戻り値は、エンコード後の文字列の総バイト数です。
+	エラーの場合は、-1 を返します。
+
+
+    (9) Base64 でエンコードされた文字列をデコード
+
+	int	wkfDecodeBase64String(const String str, String rbuf,
+				      size_t rsize);
+
+	Base64 でエンコードされた文字列をデコードします。
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+
+	戻り値は、デコード後の文字列の総バイト数です。
+	エラーの場合は、-1 を返します。
+
+
+   (10) Base64 でエンコードされたファイルをデコード
+
+	void	wkfDecodeBase64File(FILE * fin, FILE * fout);
+
+	Base64 でエンコードされたファイルをデコードして、ファイルに出力します。
+	引数は、入力元ファイルポインタと出力先ファイルポインタです。
+	戻り値はありません。
+
+
+   (11) 文字列を Quoted-Printable でエンコードした文字列に変換
+
+	int	wkfEncodeQuotedPrintableString(const String str, String rbuf,
+					       size_t rsize);
+
+	文字列を Quoted-Printable でエンコードされた文字列に変換します。
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+
+	戻り値は、エンコード後の文字列の総バイト数です。
+	エラーの場合は、-1 を返します。
+
+
+   (12) Quoted-Printable でエンコードされた文字列をデコード
+
+	int	wkfDecodeQuotedPrintableString(const String str, String rbuf,
+					       size_t rsize);
+
+	Quoted-Printable でエンコードされた文字列をデコードします。
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+
+	戻り値は、デコード後の文字列の総バイト数です。
+	エラーの場合は、-1 を返します。
+
+
+   (13) Quoted-Printable でエンコードされたファイルをデコード
+
+	void	wkfDecodeQuotedPrintableFile(FILE * fin, FILE * fout);
+
+	Quoted-Printable でエンコードされたファイルをデコードして、
+	ファイルに出力します。
+	引数は、入力元ファイルポインタと出力先ファイルポインタです。
+	戻り値はありません。
+
+
+   (14) 文字列を MIME エンコードした文字列に変換
+
+	conv_t	wkfEncodeMimeString(const String str, String rbuf,
+				    size_t rsize, kcode_t kout);
+
+	文字列を Base64 形式で MIME エンコードした文字列に変換します。
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+
+	kout にはエンコード前の漢字コードを設定します。
+	kout の値は、KC_JIS, KC_EUC, KC_SJIS のいずれかです。
+	KC_UNKNOWN を指定した場合は、漢字コード変換を行いません。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	デコードに失敗
+	CONV_NO		デコードしない
+	CONV_OK		デコード成功
+
+
+   (15) MIME エンコードされた文字列をデコード
+
+	conv_t	wkfDecodeMimeString(const String str, String rbuf,
+				    size_t rsize, kcode_t kout);
+
+	MIME エンコードされた文字列（=?ISO-2022-JP?B?......?= のような文字列）
+	をデコードします。同時に、指定した漢字コードに変換します。
+
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+	kout にはデコード後の漢字コードを設定できます。
+	kout の値は、KC_UNKNOWN, KC_JIS, KC_EUC, KC_SJIS のいずれかです。
+	KC_UNKNOWN を指定した場合は、漢字コード変換を行いません。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	デコードに失敗
+	CONV_NO		デコードしない
+	CONV_OK		デコード成功
+
+	※CONV_ERR が返る場合は、変換後の文字列を格納するためのバッファの
+	  大きさ size が小さ過ぎることや、動的にメモリを取れなかった場合が
+	  考えられます。
+
+	（注）可能な限りデコードしますので、中途半端な文字列が結果として
+	      返されることもあります。
+
+
+   (16) 文字列を（:XX:XX のような）16進数表示文字列に変換
+
+	conv_t	wkfStringToHexString(const String str, String rbuf,
+				     size_t rsize);
+
+	文字列を Samba などで利用する HEX 型の文字列に変換します。
+	例えば、「康一」は「:8d:4e:88:ea」になります。
+
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	変換に失敗
+	CONV_NO		変換しない
+	CONV_OK		変換成功
+
+	※CONV_ERR が返る場合は、変換後の文字列を格納するためのバッファの
+	  大きさ size が小さ過ぎることや、動的にメモリを取れなかった場合が
+	  考えられます。
+
+
+   (17) MIME エンコードされた文字列を（:XX:XX のような）16進数表示文字列に変換
+
+	conv_t	wkfMimeStringToHexString(const String str, String rbuf,
+					 size_t rsize);
+
+	(12) と同じですが、MIME エンコードされた文字列を引数にとります。
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	変換に失敗
+	CONV_NO		変換しない
+	CONV_OK		変換成功
+
+	※CONV_ERR が返る場合は、変換後の文字列を格納するためのバッファの
+	  大きさ size が小さ過ぎることや、動的にメモリを取れなかった場合が
+	  考えられます。
+
+
+   (18) 文字列を折り返す
+
+	conv_t	wkfFoldString(const String str, size_t flen,
+			      String rbuf, size_t rsize, kcode_t kout);
+
+	文字列を指定した長さで折り返します。
+	ただし、現時点の実装では折り返しと言うより切り取っています。
+
+	引数 str に文字列を指定し、flen に折り返す文字長、rbuf に折り返された
+	文字列を受け取るバッファ、rbuf のサイズとして引数 rsize を指定します。
+	kout にはデコード後の漢字コードを設定できます。
+	kout の値は、KC_UNKNOWN, KC_JIS, KC_EUC, KC_SJIS のいずれかです。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	デコードに失敗
+	CONV_NO		デコードしない
+	CONV_OK		デコード成功
+
+
+   (19) Escaped URI 文字列をデコード
+
+	conv_t	wkfDecodeEscapedURIString(const String str, String rbuf,
+					  size_t rsize, kcode_t kout);
+
+	Escaped URI 文字列（%A4%AB%A4%EB のような文字列）
+	をデコードします。同時に、指定した漢字コードに変換します。
+
+	引数 str に変換する文字列を指定し、変換後の文字列を受け取るバッファに
+	rbuf、rbuf のサイズとして引数 rsize を指定します。
+	kout にはデコード後の漢字コードを設定できます。
+	kout の値は、KC_UNKNOWN, KC_JIS, KC_EUC, KC_SJIS のいずれかです。
+	KC_UNKNOWN を指定した場合は、漢字コード変換を行いません。
+
+	関数の戻り値は、次のとおりです。
+
+	CONV_ERR	デコードに失敗
+	CONV_NO		デコードしない
+	CONV_OK		デコード成功
+
+	※CONV_ERR が返る場合は、変換前の文字コードが Unicode の
+	  可能性があります。
+	  また、変換後の文字列を格納するためのバッファの大きさ size が
+	  小さ過ぎることや、動的にメモリを取れなかった場合が考えられます。
+
+
+ 3. 使用方法
+
+    自作の C プログラムに組み込む場合は、wkf.h をインクルードして
+    wkf ライブラリ（libwkf.a）をリンクするだけです。
+
+    基本的な使い方は、ソースコードに次の一行を書き、
+
+	#include <wkf.h>
+
+    コンパイル時に wkf ライブラリをリンクします。
+
+
+    例えば、簡単な漢字コード判別プログラムの場合は、次のような
+    ソースコードになります。ファイル名は、guess.c とします。
+
+	#include <stdio.h>
+	#include <wkf.h>
+
+	int
+	main(argc, argv)
+		int	argc;
+		char	**argv;
+	{
+	  FILE *	fin;
+
+	  if (argc > 1) {
+	    fin = fopen(*++argv, "r");
+	    if (fin == NULL) {
+	      perror("fopen");
+	      exit(1);
+	    }
+	  }
+	  else {
+	    fin = stdin;
+	  }
+	
+	  wkfPrintGuessedKanjiCodeOfFile(fin, FALSE);
+
+	  fclose(fin);
+
+	  return 0;
+	}
+
+    上記のソースコードのコンパイルは次のようにします。
+    '%' はシェルプロンプトです。
+
+	% gcc -o guess -I/usr/local/include -L/usr/local/lib guess.c -lwkf
+
+    コンパイル後の使用方法は、次のようになります。
+
+	% guess API
+
+	% cat API | ./guess
+
+

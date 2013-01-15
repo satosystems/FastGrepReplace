@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastGrepReplace", "FastGrepReplace\FastGrepReplace.vcproj", "{11027AFC-986E-4270-8CBC-6D89CBAF2B79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Execute|Win32 = Execute|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11027AFC-986E-4270-8CBC-6D89CBAF2B79}.Debug|Win32.ActiveCfg = Debug|Win32
+		{11027AFC-986E-4270-8CBC-6D89CBAF2B79}.Debug|Win32.Build.0 = Debug|Win32
+		{11027AFC-986E-4270-8CBC-6D89CBAF2B79}.Execute|Win32.ActiveCfg = Execute|Win32
+		{11027AFC-986E-4270-8CBC-6D89CBAF2B79}.Execute|Win32.Build.0 = Execute|Win32
+		{11027AFC-986E-4270-8CBC-6D89CBAF2B79}.Release|Win32.ActiveCfg = Release|Win32
+		{11027AFC-986E-4270-8CBC-6D89CBAF2B79}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

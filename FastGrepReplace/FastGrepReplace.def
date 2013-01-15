@@ -1,0 +1,7 @@
+LIBRARY FastGrepReplace
+
+EXPORTS
+	EnumHidemaruFilter
+	HidemaruFilterGetVersion
+	Replace
+	Setup
