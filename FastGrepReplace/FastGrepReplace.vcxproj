@@ -89,20 +89,9 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>ver | find "Version 6" &gt; nul
-if not errorlevel 1 (
-copy /y "$(SolutionDir)$(ProjectFileName).mac" "%25appdata%25\Hidemaruo\Hidemaru\Macro"
+      <Command>copy /y "$(SolutionDir)$(SolutionName).mac" "%25appdata%25\Hidemaruo\Hidemaru\Macro"
 copy /y "$(TargetPath)" "%25appdata%25\Hidemaruo\Hidemaru\Macro\FastGrepReplace.hmf"
-copy /y "$(SolutionDir)$(ProjectFileName).txt"  "%25appdata%25\Hidemaruo\Hidemaru\Macro"
-) else (
-copy /y "$(SolutionDir)$(ProjectFileName).mac" "C:\Program Files\Hidemaru\macro"
-copy /y "$(TargetPath)" "C:\Program Files\Hidemaru\macro\FastGrepReplace.hmf"
-copy /y "$(SolutionDir)$(ProjectFileName).txt"  "C:\Program Files\Hidemaru\macro"
-)
-
-
-
-
+copy /y "$(SolutionDir)$(SolutionName).txt"  "%25appdata%25\Hidemaruo\Hidemaru\Macro"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -126,16 +115,9 @@ copy /y "$(SolutionDir)$(ProjectFileName).txt"  "C:\Program Files\Hidemaru\macro
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>ver | find "Version 6" &gt; nul
-if not errorlevel 1 (
-copy /y "$(SolutionDir)$(ProjectFileName).mac" "%25appdata%25\Hidemaruo\Hidemaru\Macro"
+      <Command>copy /y "$(SolutionDir)$(SolutionName).mac" "%25appdata%25\Hidemaruo\Hidemaru\Macro"
 copy /y "$(TargetPath)" "%25appdata%25\Hidemaruo\Hidemaru\Macro\FastGrepReplace.hmf"
-copy /y "$(SolutionDir)$(ProjectFileName).txt"  "%25appdata%25\Hidemaruo\Hidemaru\Macro"
-) else (
-copy /y "$(SolutionDir)$(ProjectFileName).mac" "C:\Program Files\Hidemaru\macro"
-copy /y "$(TargetPath)" "C:\Program Files\Hidemaru\macro\FastGrepReplace.hmf"
-copy /y "$(SolutionDir)$(ProjectFileName).txt"  "C:\Program Files\Hidemaru\macro"
-)
+copy /y "$(SolutionDir)$(SolutionName).txt"  "%25appdata%25\Hidemaruo\Hidemaru\Macro"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

@@ -1285,7 +1285,7 @@ static kcode_t detect_utf(String text, DWORD size) {
 				utf7base64 = false;
 				score_utf7++;
 			} else if (utf7base64) {
-				char q[] = { buf[i], '\0' };
+				char q[] = { (char) buf[i], '\0' };
 				if (strstr(base64, q) == NULL) {
 					score_utf7 = -1;
 				} else {
